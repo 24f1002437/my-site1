@@ -1,0 +1,38 @@
+name: CI with Cache
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: prime-cache-943f0c3
+        id: prime-cache-943f0c3
+        uses: actions/cache@v4
+        with:
+          # npm cache location on linux/macOS runners
+          path: ~/.npm
+          key: cache-943f0c3
+
+      - name: Echo cache result
+        run: echo "Cache hit = ${{ steps.prime-cache-943f0c3.outputs.cache-hit }}"
+
+      - name: Install dependencies (only if cache miss)
+        if: steps.prime-cache-943f0c3.outputs.cache-hit != 'true'
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
